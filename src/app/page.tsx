@@ -1,101 +1,144 @@
-import Image from "next/image";
+"use client";
+
+import { useForm } from "react-hook-form";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+import type { SubmitHandler } from "react-hook-form";
+
+const formSchema = z.object({
+	firstName: z.string().nonempty().min(2),
+	lastName: z.string().nonempty().min(2),
+	email: z.string().email(),
+	youtubeVideoLink: z.string().url(),
+});
 
 export default function Home() {
-	return (
-		<div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-			<main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-				<Image
-					className="dark:invert"
-					src="/next.svg"
-					alt="Next.js logo"
-					width={180}
-					height={38}
-					priority
-				/>
-				<ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-					<li className="mb-2">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li>Save and see your changes instantly.</li>
-				</ol>
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			firstName: "",
+			lastName: "",
+			email: "",
+			youtubeVideoLink: "",
+		},
+	});
 
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Image
-							className="dark:invert"
-							src="/vercel.svg"
-							alt="Vercel logomark"
-							width={20}
-							height={20}
-						/>
-						Deploy now
-					</a>
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
-				</div>
-			</main>
-			<footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
+	const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = (data) => {
+		fetch(
+			"https://docs.google.com/forms/d/e/1FAIpQLSfXxqsl6VrERnIBX71OEmuWwZqsN1q1AD0qsTliJDPF5ZIkJA/formResponse",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+
+				body: new URLSearchParams({
+					"entry.1743492575": data.firstName,
+					"entry.860330404": data.lastName,
+					"entry.1992491264": data.email,
+					"entry.346499562": data.youtubeVideoLink,
+				}).toString(),
+			},
+		)
+			.then((response) => {
+				if (response.ok) {
+					console.log("Form submitted successfully");
+					toast.success("Form submitted successfully");
+				} else {
+					console.error("Form submission failed");
+					toast.error("Form submission failed");
+				}
+			})
+			.catch((error) => {
+				console.error("Error submitting form:", error);
+				toast.error("An error occurred while submitting the form");
+			});
+	};
+
+	return (
+		<section className="container">
+			<Form {...form}>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className="space-y-8 max-w-md mx-auto"
 				>
-					<Image
-						aria-hidden
-						src="/file.svg"
-						alt="File icon"
-						width={16}
-						height={16}
+					<FormField
+						control={form.control}
+						name="firstName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>First Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Yasiru" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/window.svg"
-						alt="Window icon"
-						width={16}
-						height={16}
+
+					<FormField
+						control={form.control}
+						name="lastName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Last Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Dharmathilaka" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-					Examples
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/globe.svg"
-						alt="Globe icon"
-						width={16}
-						height={16}
+
+					<FormField
+						control={form.control}
+						name="email"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Email</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="yasiru.dharmathilaka@gmai.com"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-					Go to nextjs.org →
-				</a>
-			</footer>
-		</div>
+
+					<FormField
+						control={form.control}
+						name="youtubeVideoLink"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>YouTube Video Link</FormLabel>
+								<FormControl>
+									<Input placeholder="https://www.youtube.com/..." {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<Button type="submit">Submit</Button>
+				</form>
+			</Form>
+		</section>
 	);
 }
